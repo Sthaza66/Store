@@ -1,0 +1,18 @@
+// src/firebase.js
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore"; 
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA734Cu8WeDY5EVR4dzKWO6-RdyqPZhMes",
+  authDomain: "sthazabot.firebaseapp.com",
+  projectId: "sthazabot",
+  storageBucket: "sthazabot.firebasestorage.app",
+  messagingSenderId: "161168359918",
+  appId: "1:161168359918:web:52a7ee0e61b40ffac3ceff",
+  measurementId: "G-154FXLVY8K"
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
