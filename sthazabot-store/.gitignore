@@ -25,3 +25,9 @@ dist-ssr
 .env
 # Node modules
 node_modules/
+
+# Ignore service account keys
+*.json
+
+# Firebase / service account keys
+serviceAccountKeys.json
