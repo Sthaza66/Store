@@ -44,5 +44,5 @@ Thumbs.db
 *.tmp
 *.temp
 
-# Firebase / service account keys
-/serviceAccountKey.json
+# Firebase / Google service keys
+serviceAccountKey.json
