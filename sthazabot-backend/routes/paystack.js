@@ -21,7 +21,7 @@ router.post("/initialize", async (req, res) => {
         email,
         amount: koboAmount,
         currency: "ZAR", // 🇿🇦 change to "ZAR" if your Paystack account is ZAR based
-        callback_url: `${process.env.VITE_BACKEND_URL}/payment-success`, // where Paystack redirects after payment
+        callback_url: `${process.env.VITE_BACKEND_URL}/success`, // where Paystack redirects after payment
         metadata: {
           uid,
           productId,

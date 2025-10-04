@@ -46,6 +46,5 @@ Thumbs.db
 
 # Firebase / service account keys
 serviceAccountKey.json
-
 # Ignore all other JSON secrets if needed
 secret*.json

@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-import { db, auth } from "../firebase";
+import { auth } from "../firebase";
 import { format } from "date-fns";
 
 const Notifications = () => {
@@ -19,41 +10,21 @@ const Notifications = () => {
     const user = auth.currentUser;
     if (!user) return;
 
-    const q = query(
-      collection(db, "notifications"),
-      where("uid", "==", user.uid),
-      orderBy("timestamp", "desc")
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/notifications/${user.uid}`
+        );
+        const data = await res.json();
         setNotifications(data);
-      },
-      (err) => {
+      } catch (err) {
         console.error("Error fetching notifications:", err.message);
         setError("Failed to load notifications.");
       }
-    );
+    };
 
-    return () => unsubscribe();
-  }, [auth.currentUser]);
-
-  // ✅ Mark notification as read
-  const markAsRead = async (id) => {
-    try {
-      const notifRef = doc(db, "notifications", id);
-      await updateDoc(notifRef, {
-        read: true,
-      });
-    } catch (err) {
-      console.error("Failed to mark as read:", err.message);
-    }
-  };
+    fetchNotifications();
+  }, []);
 
   return (
     <div className="p-6">
@@ -72,20 +43,10 @@ const Notifications = () => {
               notif.read ? "border-gray-100" : "border-blue-500"
             }`}
           >
-            <div className="flex justify-between items-center">
-              <p className="text-gray-800">{notif.message}</p>
-              {!notif.read && (
-                <button
-                  onClick={() => markAsRead(notif.id)}
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  Mark as read
-                </button>
-              )}
-            </div>
-            {notif.timestamp?.toDate && (
+            <p className="text-gray-800">{notif.message}</p>
+            {notif.timestamp && (
               <p className="text-sm text-gray-500 mt-1">
-                {format(notif.timestamp.toDate(), "PPPpp")}
+                {format(new Date(notif.timestamp), "PPPpp")}
               </p>
             )}
           </li>

@@ -16,6 +16,7 @@ import Buy from "./pages/Buy";
 import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
 import Success from "./pages/success";
+import Declined from "./pages/Declined"
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 
@@ -32,7 +33,8 @@ const LayoutWrapper = () => {
     "/dashboard/profile",
     "/dashboard/notifications",
     "/products",
-    "/success"
+    "/success",
+    "/declined"
   ];
 
   // Function to determine whether to hide Navbar
@@ -60,6 +62,7 @@ const LayoutWrapper = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/profile" element={<Profile />} />
         <Route path="/success" element={<Success />} />
+        <Route path="/declined" element={<Declined/>}/>
         <Route path="/dashboard/notifications" element={<Notifications />} />
       </Routes>
 

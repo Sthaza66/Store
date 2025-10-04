@@ -1,10 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import { auth, db } from "../firebase";
+import { auth } from "../firebase";
 import { toast } from "react-toastify";
 import React, { useEffect, useState } from "react";
-import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { format } from "date-fns";
 import axios from "axios";
 
@@ -15,97 +13,51 @@ const Dashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  const urlParams = new URLSearchParams(location.search);
-  const success = urlParams.get("success");
+  // fetch orders + notifications from backend API
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        try {
+          await fetchOrders(user);
+          await fetchNotifications(user);
+        } catch (err) {
+          console.error("Dashboard init error:", err);
+          toast.error("Failed to load dashboard data");
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        console.warn("No user logged in");
+        setLoading(false);
+        navigate("/login");
+      }
+    });
 
-  if (success === "true") {
-    const productId = localStorage.getItem("lastProductId");
-    if (productId) {
-      fetchDownloadLink(productId);
-      localStorage.removeItem("lastProductId");
-    }
-  }
-
-  const unsubscribe = auth.onAuthStateChanged(async (user) => {
-    if (user) {
-      await fetchOrders(user);
-      await fetchNotifications(user);
-      setLoading(false);
-    } else {
-      console.warn("No user logged in");
-      setLoading(false);
-    }
-  });
-
-  return () => unsubscribe();
-}, []);
-
+    return () => unsubscribe();
+  }, [navigate]);
 
   const fetchOrders = async (user) => {
     try {
-      const q = query(
-        collection(db, "orders"),
-        where("uid", "==", user.uid),
-        orderBy("timestamp", "desc")
-      );
+      const res = await axios.get(`http://localhost:5000/api/orders/${user.uid}`);
+      setOrders(res.data);
 
-      const snapshot = await getDocs(q);
-      const orderList = snapshot.docs.map((doc) => doc.data());
-      setOrders(orderList);
-
-      const total = orderList.reduce((sum, order) => sum + (order.price || 0), 0);
+      const total = res.data.reduce((sum, order) => sum + (order.amount || 0), 0);
       setTotalSales(total);
     } catch (error) {
       console.error("Error fetching orders:", error);
+      toast.error("Could not load orders");
     }
   };
 
   const fetchNotifications = async (user) => {
     try {
-      const q = query(
-        collection(db, "notifications"),
-        where("uid", "==", user.uid),
-        orderBy("timestamp", "desc")
-      );
-
-      const snap = await getDocs(q);
-      const recent = snap.docs
-        .map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
-        .slice(0, 5);
-
-      setRecentActivity(recent);
+      const res = await axios.get(`http://localhost:5000/api/notifications/${user.uid}`);
+      setRecentActivity(res.data.slice(0, 5));
     } catch (error) {
       console.error("Error fetching notifications:", error);
+      toast.error("Could not load notifications");
     }
   };
-
-  const fetchDownloadLink = async (productId) => {
-  try {
-    const res = await fetch("http://localhost:5000/api/download-link", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ productId }),
-    });
-
-    const data = await res.json();
-    if (data.downloadUrl) {
-      toast.success("Your download is starting...");
-      window.location.href = data.downloadUrl;
-    } else {
-      toast.error("No download link available.");
-    }
-  } catch (err) {
-    console.error("Download fetch error:", err);
-    toast.error("Failed to get your download.");
-  }
-};
-
 
   const handleLogout = async () => {
     try {
@@ -113,7 +65,6 @@ useEffect(() => {
       if (user) {
         await axios.post("http://localhost:5000/api/auth/logout", { uid: user.uid });
       }
-
       await signOut(auth);
       toast.success("Logged out successfully");
       navigate("/");
@@ -144,7 +95,6 @@ useEffect(() => {
             <Link to="/products" className="block py-2 px-3 rounded hover:bg-gray-200">Products</Link>
           </nav>
         </div>
-
         <button
           onClick={handleLogout}
           className="w-full mt-6 bg-red-600 text-white py-2 rounded hover:bg-red-700"
@@ -164,35 +114,44 @@ useEffect(() => {
             <p className="text-xl md:text-2xl font-bold mt-2">R{totalSales}</p>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4">
-            <h3 className="text-base md:text-lg font-semibold">Active Users</h3>
-            <p className="text-xl md:text-2xl font-bold mt-2">87</p>
+            <h3 className="text-base md:text-lg font-semibold">Orders</h3>
+            <p className="text-xl md:text-2xl font-bold mt-2">{orders.length}</p>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4">
-            <h3 className="text-base md:text-lg font-semibold">New Orders</h3>
-            <p className="text-xl md:text-2xl font-bold mt-2">{orders.length}</p>
+            <h3 className="text-base md:text-lg font-semibold">Notifications</h3>
+            <p className="text-xl md:text-2xl font-bold mt-2">{recentActivity.length}</p>
           </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Recent Orders */}
         <div className="mt-8 bg-white p-4 md:p-6 rounded-lg shadow-md">
-          <h2 className="text-lg md:text-xl font-semibold mb-4">Recent Activity</h2>
-          {recentActivity.length === 0 ? (
-            <p className="text-gray-600">No recent activity.</p>
+          <h2 className="text-lg md:text-xl font-semibold mb-4">Recent Orders</h2>
+          {orders.length === 0 ? (
+            <p className="text-gray-600">No orders yet.</p>
           ) : (
-            <ul className="space-y-2">
-              {recentActivity.map((act) => (
-                <li key={act.id} className="text-gray-800 text-sm md:text-base">
-                  • {act.message}
-                  {act.timestamp && (
-                    <span className="text-xs md:text-sm text-gray-500 ml-2">
-                      ({format(act.timestamp.toDate(), "PPpp")})
-                    </span>
-                  )}
-                </li>
-              ))}
+            <ul className="divide-y divide-gray-200">
+              {orders.slice(0, 5).map((order) => {
+                let orderDate = "N/A";
+                if (order.createdAt) {
+                  try {
+                    orderDate = format(new Date(order.createdAt), "PPpp");
+                  } catch {
+                    orderDate = "Invalid date";
+                  }
+                }
+                return (
+                  <li key={order.id || order.reference} className="py-2 flex justify-between text-sm md:text-base">
+                    <span>Order ID: {order.reference}</span>
+                    <span>R{order.amount}</span>
+                    <span>{orderDate}</span>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
+
+
       </main>
     </div>
   );

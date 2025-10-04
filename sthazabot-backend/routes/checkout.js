@@ -27,7 +27,7 @@ router.post("/initialize", async (req, res) => {
       email,
       amount: amountInCents,
       currency,
-      callback_url: `${process.env.FRONTEND_URL}/success`, // user returns here after payment
+      callback_url: `${process.env.VITE_BACKEND_URL}/success`, // user returns here after payment
       metadata: {
         uid,
         productId,
