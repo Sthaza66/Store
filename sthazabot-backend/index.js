@@ -21,7 +21,9 @@ const { router: productsRouter } = require("./routes/products");
 const app = express();
 
 // ✅ Enable CORS
-app.use(cors());
+app.use(cors({
+  origin: "https://sthazabot-inc.netlify.app/"
+}));
 
 // ✅ Webhook FIRST with raw body
 app.post(
