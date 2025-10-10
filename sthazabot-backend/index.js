@@ -21,7 +21,7 @@ const app = express();
 // ✅ Enable CORS for your frontend
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://sthazabot-inc.netlify.app",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
