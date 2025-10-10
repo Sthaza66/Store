@@ -1,11 +1,12 @@
 // webhooks/yocoWebhook.js
-const { db } = require("../firebase/firebaseAdmin"); // Firebase admin SDK
+const crypto = require("crypto");
+const { db } = require("../firebase/firebaseAdmin"); // Firebase Admin SDK
+const fetch = require("node-fetch");
 const sgMail = require("@sendgrid/mail");
-const fetch = require("node-fetch"); // if you fetch download URLs from backend
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// Helper: send download email
+// Helper: Send download email
 async function sendDownloadEmail(email, productId) {
   try {
     const res = await fetch(`${process.env.BACKEND_URL}/api/download`, {
@@ -34,9 +35,24 @@ async function sendDownloadEmail(email, productId) {
   }
 }
 
-// Main webhook handler
+// Verify Yoco webhook signature
+function verifyYocoSignature(req, secret) {
+  const signature = req.headers["yoco-signature"];
+  const payload = req.body.toString();
+  const hmac = crypto.createHmac("sha256", secret).update(payload).digest("base64");
+  return signature === hmac;
+}
+
+// Yoco webhook handler
 module.exports = async (req, res) => {
   try {
+    // ✅ Verify signature first
+    if (!verifyYocoSignature(req, process.env.YOCO_WEBHOOK_SECRET)) {
+      console.warn("⚠️ Invalid Yoco webhook signature");
+      return res.sendStatus(401);
+    }
+
+    // Parse raw body
     const event = JSON.parse(req.body.toString());
     console.log("💳 Yoco Webhook event received:", JSON.stringify(event, null, 2));
 
