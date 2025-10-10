@@ -9,14 +9,14 @@ const products = [
     id: 1,
     name: 'Robotrader AI',
     description: 'An advanced trading bot for MetaTrader 5 with 90% win rate.',
-    price: 'R350',
+    price: 'R500',
     icon: <Bot size={40} className="text-blue-600" />,
   },
   {
     id: 2,
     name: 'Sthazabot Binary Pro',
     description: 'Binary options bot with trend and reversal detection.',
-    price: 'R250',
+    price: 'R350',
     icon: <Cpu size={40} className="text-purple-600" />,
   },
   {

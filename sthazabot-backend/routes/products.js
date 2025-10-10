@@ -6,7 +6,7 @@ const products = {
     id: "1",
     name: "Robotrader AI",
     description: "An advanced trading bot for MetaTrader 5 with 90% win rate.",
-    price: 350,
+    price: 500,
     icon: "bot",
     storagePath: "products/1/RobotraderAI.zip"
   },
@@ -14,7 +14,7 @@ const products = {
     id: "2",
     name: "Forex Analyzer",
     description: "A powerful market structure analysis tool.",
-    price: 250,
+    price: 350,
     icon: "cpu",
     storagePath: "products/2/smartbuilder.zip"
   },

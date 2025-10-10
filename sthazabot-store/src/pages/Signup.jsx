@@ -15,6 +15,7 @@ const Signup = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters long.");
@@ -28,7 +29,7 @@ const Signup = () => {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
 
       // 2. Send user UID & email to backend
-      await axios.post("http://localhost:5000/api/auth/signup", {
+      await axios.post(`${BACKEND_URL}/api/auth/signup`, {
         uid: user.uid,
         email,
       });

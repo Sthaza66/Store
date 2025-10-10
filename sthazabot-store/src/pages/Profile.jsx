@@ -5,6 +5,8 @@ import { uploadImage } from "../utils/uploadImage";
 import ClipLoader from "react-spinners/ClipLoader";
 
 const ProfileSection = () => {
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,7 +25,7 @@ const ProfileSection = () => {
     if (!user) return;
 
     try {
-      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/profile/${user.uid}`);
+      const res = await axios.get(`${BACKEND_URL}/api/profile/${user.uid}`);
       const data = res.data;
 
       setFormData({
@@ -86,7 +88,7 @@ const ProfileSection = () => {
         photoURL,
       };
 
-      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/profile/${user.uid}`, updatedData);
+      await axios.post(`${BACKEND_URL}/api/profile/${user.uid}`, updatedData);
 
       alert("✅ Profile updated successfully!");
     } catch (err) {

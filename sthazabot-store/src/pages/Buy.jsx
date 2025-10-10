@@ -16,6 +16,7 @@ const Buy = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [product, setProduct] = useState(null);
 
+  // ✅ Fetch product details
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -23,6 +24,7 @@ const Buy = () => {
         if (!res.ok) throw new Error("Product not found");
         const data = await res.json();
         setProduct(data);
+        console.log("🛍️ Product fetched:", data);
       } catch (err) {
         toast.error("Failed to load product.");
       }
@@ -30,6 +32,7 @@ const Buy = () => {
     fetchProduct();
   }, [id]);
 
+  // ✅ Handle Yoco payment
   const handlePurchase = async () => {
     const user = auth.currentUser;
     if (!user) {
@@ -38,9 +41,8 @@ const Buy = () => {
     }
 
     setIsLoading(true);
-
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/paystack/init`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/yoco/init`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -51,8 +53,10 @@ const Buy = () => {
       });
 
       const data = await res.json();
+      console.log("💳 Yoco API response:", data);
 
-      if (data?.authorization_url) {
+      if (data?.redirectUrl) {
+        // ✅ Optional: Save a notification for the user
         await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/notifications/${user.uid}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -63,13 +67,15 @@ const Buy = () => {
           }),
         });
 
-        window.location.href = data.authorization_url;
+        // ✅ Redirect to Yoco Checkout
+        window.location.href = data.redirectUrl;
       } else {
-        throw new Error("No Paystack authorization URL received.");
+        throw new Error("No Yoco redirect URL received.");
       }
     } catch (error) {
-      console.error("Paystack error:", error);
-      toast.error("Failed to start payment.");
+      console.error("❌ Yoco error:", error);
+      console.log(error.message)
+      toast.error("Failed to start payment. Check console for details.");
     } finally {
       setIsLoading(false);
     }

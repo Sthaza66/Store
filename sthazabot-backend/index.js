@@ -1,44 +1,45 @@
 // index.js
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
 
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const checkoutRoutes = require("./routes/checkout");
 const downloadRoutes = require("./routes/download");
 const contactRoutes = require("./routes/contacts");
-const paystackRoutes = require("./routes/paystack");
-const paystackInit = require("./routes/paystackInit"); 
-const paystackWebhook = require("./routes/paystackWebhook");
 const orderRoutes = require("./routes/orders");
 const notificationRoutes = require("./routes/notifications");
 const { router: productsRouter } = require("./routes/products");
 
-
-
+// ✅ Yoco routes
+const yocoInit = require("./routes/yoko.init");
+const yocoWebhook = require("./webhooks/yocoWebhook");
 
 const app = express();
 
-// ✅ Enable CORS
-app.use(cors({
-  origin: "https://sthazabot-inc.netlify.app/"
-}));
+// ✅ Enable CORS for your frontend
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-// ✅ Webhook FIRST with raw body
+// ✅ Yoco Webhook FIRST with raw body
 app.post(
-  "/paystack/webhook",
+  "/yoco/webhook",
   express.raw({ type: "*/*" }),
-  paystackWebhook
+  yocoWebhook
 );
 
 // ✅ JSON middleware AFTER webhook
 app.use(express.json());
 
-// ✅ Routes
+// ✅ API Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/paystack", paystackRoutes);  
-app.use("/api/paystack", paystackInit);
+app.use("/api/yoco", yocoInit); // Yoco init route
 app.use("/api", userRoutes);
 app.use("/api", checkoutRoutes);
 app.use("/api", downloadRoutes);
@@ -47,14 +48,11 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/products", productsRouter);
 
-
 // ✅ Health check
 app.get("/", (req, res) => {
-  res.send("Sthazabot backend is running 🚀");
+  res.send("🚀 Sthazabot backend running with Yoco integration");
 });
 
 // ✅ Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`✅ Server is listening on port ${PORT}`)
-);
+app.listen(PORT, () => console.log(`✅ Server is running on port ${PORT}`));

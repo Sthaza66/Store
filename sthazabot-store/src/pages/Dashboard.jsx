@@ -13,7 +13,9 @@ const Dashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // fetch orders + notifications from backend API
+  // ✅ Correct way to read env in Vite
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -38,7 +40,7 @@ const Dashboard = () => {
 
   const fetchOrders = async (user) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/orders/${user.uid}`);
+      const res = await axios.get(`${BACKEND_URL}/api/orders/${user.uid}`);
       setOrders(res.data);
 
       const total = res.data.reduce((sum, order) => sum + (order.amount || 0), 0);
@@ -51,7 +53,7 @@ const Dashboard = () => {
 
   const fetchNotifications = async (user) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/notifications/${user.uid}`);
+      const res = await axios.get(`${BACKEND_URL}/api/notifications/${user.uid}`);
       setRecentActivity(res.data.slice(0, 5));
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -63,7 +65,7 @@ const Dashboard = () => {
     try {
       const user = auth.currentUser;
       if (user) {
-        await axios.post("http://localhost:5000/api/auth/logout", { uid: user.uid });
+        await axios.post(`${BACKEND_URL}/api/auth/logout`, { uid: user.uid });
       }
       await signOut(auth);
       toast.success("Logged out successfully");
@@ -150,8 +152,6 @@ const Dashboard = () => {
             </ul>
           )}
         </div>
-
-
       </main>
     </div>
   );
